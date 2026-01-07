@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CricketQL</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "JetBrains Mono", Consolas, monospace;
+            background: radial-gradient(circle at top, #020617, #000000);
+            color: #e5e7eb;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 80px 24px;
+        }
+
+        /* HERO */
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 16px;
+            color: #38bdf8;
+        }
+
+        .tagline {
+            font-size: 18px;
+            color: #cbd5f5;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 14px;
+        }
+
+        .btn {
+            padding: 14px 22px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, #38bdf8, #6366f1);
+            color: #020617;
+        }
+
+        .secondary {
+            border: 1px solid #475569;
+            color: #e5e7eb;
+            background: transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* SECTIONS */
+        .section {
+            margin-top: 100px;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #e5e7eb;
+        }
+
+        .section p {
+            color: #94a3b8;
+            max-width: 700px;
+            line-height: 1.7;
+        }
+
+        /* FEATURES */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            color: #38bdf8;
+            font-size: 16px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #cbd5f5;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 120px;
+            padding: 40px 0;
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HERO -->
+    <section class="hero">
+        <div>
+            <h1>CricketQL</h1>
+            <p class="tagline">
+                Ask questions in English and get verified answers from a real database — not an LLM guess.
+                A production-grade NLP → SQL system with strict safety guarantees and real PostgreSQL execution.
+            </p>
+
+            <div class="buttons">
+                <a href="/home/" class="btn primary">Try Live Demo</a>
+                <a href="https://github.com/YOUR_GITHUB/CricketQL" class="btn secondary" target="_blank">
+                    View GitHub
+                </a>
+            </div>
+            <p class="demo-hint">Try: <em>“Who has the highest batting average in T20 matches?”</em></p>
+            <br>
+            <p class="warning">Responses not sourced from the database are explicitly marked.</p>
+        </div>
+
+        <div>
+            <p style="color:#94a3b8; line-height:1.7;">
+                CricketQL is a domain-specific implementation of a general, safe NLP → SQL architecture
+                that can be adapted to any structured dataset.
+                It converts natural language into safe, validated SQL queries
+                executed on a real PostgreSQL database.
+                <br><br>
+                If data is missing, an optional external LLM can answer — clearly labeled
+                and fully controlled.
+            </p>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+        <h2>How it works</h2>
+
+        <div class="features">
+            <div class="card">
+                <h3>1. Natural Language Input</h3>
+                <p>User asks a cricket-related question in plain English.</p>
+            </div>
+
+            <div class="card">
+                <h3>2. Guarded LLM Parsing</h3>
+                <p>LLM is restricted to cricket-only, SELECT-only SQL generation.</p>
+            </div>
+
+            <div class="card">
+                <h3>3. PostgreSQL Execution</h3>
+                <p>Validated SQL is executed on real cricket datasets.</p>
+            </div>
+
+            <div class="card">
+                <h3>4. Optional LLM Fallback</h3>
+                <p>If data is missing, an external LLM answers transparently.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section">
+        <h2>Key features</h2>
+
+        <div class="features">
+            <div class="card">
+                <h3>Domain-restricted NLP → SQL</h3>
+                <p>Prevents off-topic queries and hallucinated schemas.</p>
+            </div>
+
+            <div class="card">
+                <h3>Query safety</h3>
+                <p>Blocks INSERT, UPDATE, DELETE at both LLM and backend level.</p>
+            </div>
+
+            <div class="card">
+                <h3>Real database execution</h3>
+                <p>No mock data. Real PostgreSQL queries.</p>
+            </div>
+
+            <div class="card">
+                <h3>Modular Django backend</h3>
+                <p>Clean, scalable architecture.</p>
+            </div>
+        </div>
+    </section>
+
+    <h2>Under the Hood</h2>
+    <ul>
+      <li>Relational PostgreSQL schema with batting, bowling, and fielding tables</li>
+      <li>Natural language → SQL generation with backend-level validation</li>
+      <li>Strict SELECT-only query enforcement (no mutations)</li>
+      <li>Rejection of ambiguous, unsafe, or out-of-domain prompts</li>
+      <li>Optional LLM fallback clearly labeled as non-database output</li>
+    </ul>
+
+    <footer>
+        Built by Kunwar · Django · PostgreSQL · LLMs
+    </footer>
+
+
+</div>
+
+</body>
+</html>

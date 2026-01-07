@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CricketQL</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "JetBrains Mono", Consolas, monospace;
+            background: radial-gradient(circle at top, #0f172a, #020617);
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 900px;
+            max-width: 95%;
+            background: rgba(2, 6, 23, 0.9);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            color: #38bdf8;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: #020617;
+            color: #e5e7eb;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        button {
+            padding: 14px 22px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #38bdf8, #6366f1);
+            color: #020617;
+            font-weight: 600;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+        }
+
+        .output {
+            margin-top: 28px;
+            background: #020617;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #e5e7eb;
+        }
+
+        .sql {
+            color: #38bdf8;
+            margin-bottom: 14px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+        }
+       /* container */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        /* hide real checkbox */
+        .toggle-checkbox {
+            display: none;
+        }
+        
+        /* toggle track */
+        .toggle-switch {
+            width: 42px;
+            height: 22px;
+            background: #64748b;
+            border-radius: 999px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            flex-shrink: 0;
+        }
+        
+        /* toggle knob */
+        .toggle-switch::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: #e5e7eb;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.25s ease;
+        }
+        
+        /* checked state */
+        .toggle-checkbox:checked + .toggle-switch {
+            background: #38bdf8;
+        }
+        
+        .toggle-checkbox:checked + .toggle-switch::after {
+            transform: translateX(20px);
+        }
+        
+        /* text */
+        .toggle-label {
+            font-size: 13px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>CricketQL</h1>
+    <div class="subtitle">Natural Language → SQL → PostgreSQL</div>
+
+    <div class="input-row">
+        <input
+            id="question"
+            placeholder="e.g. Virat Kohli average in batting"
+        />
+        <button onclick="ask()">Ask</button>
+    </div>
+
+    <div class="toggle-container">
+      <input type="checkbox" id="useFallback" class="toggle-checkbox">
+      <label for="useFallback" class="toggle-switch"></label>
+      <span class="toggle-label">Use external LLM for missing data</span>
+    </div>
+
+
+
+
+    <div id="output" class="output" style="display:none;">
+        <div class="label">Generated SQL</div>
+        <pre id="sql" class="sql"></pre>
+
+        <div class="label">Result</div>
+        <pre id="result"></pre>
+    </div>
+
+    <div class="footer">
+        Powered by LLMs · PostgreSQL · Django
+    </div>
+</div>
+
+<script>
+async function ask() {
+    const q = document.getElementById("question").value;
+    if (!q) return;
+
+    const output = document.getElementById("output");
+    const sqlBox = document.getElementById("sql");
+    const resultBox = document.getElementById("result");
+
+    // ✅ read the checkbox state directly
+    const useFallback = document.getElementById("useFallback").checked;
+    console.log("Fallback enabled?", useFallback); // true or false
+
+    output.style.display = "block";
+    sqlBox.innerText = "Generating SQL...";
+    resultBox.innerText = "Querying database...";
+
+    const res = await fetch("/api/query/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            question: q,
+            use_fallback: useFallback  // send the boolean to backend
+        })
+    });
+
+    const data = await res.json();
+
+    sqlBox.innerText = data.sql || "—";
+
+    if (data.result) {
+        if (data.source === "external_llm") {
+            resultBox.textContent =
+                data.result +
+                "\n\n⚠️ NOTE: This answer is generated using an external LLM and is not sourced from the database.";
+        } else if (typeof data.result === "string") {
+            resultBox.textContent = data.result;
+        } else {
+            resultBox.textContent = JSON.stringify(data.result, null, 2);
+        }
+    } else {
+        resultBox.textContent = data.message || data.error || "No data";
+    }
+}
+</script>
+
+</body>
+</html>
