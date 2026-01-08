@@ -114,23 +114,122 @@
         }
 
         /* FOOTER */
-        footer {
-            margin-top: 120px;
-            padding: 40px 0;
-            text-align: center;
-            font-size: 13px;
-            color: #64748b;
+
+        .site-footer {
+            margin-top: 140px;
+            padding: 60px 24px 30px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
         }
 
-        @media (max-width: 900px) {
-            .hero {
-                grid-template-columns: 1fr;
-            }
+        .footer-grid {
+            max-width: 1100px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 40px;
         }
+
+        .footer-grid h4 {
+            margin-bottom: 14px;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+
+        .footer-grid a,
+        .footer-grid span {
+            display: block;
+            font-size: 13px;
+            color: #94a3b8;
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+
+        .footer-grid a:hover {
+            color: #38bdf8;
+        }
+
+        footer p {
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 40px;
+        }
+
+
+        /* HEADER */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            background: rgba(2, 6, 23, 0.7);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav a {
+            font-size: 14px;
+            color: #cbd5f5;
+            text-decoration: none;
+        }
+
+        .nav a:hover {
+            color: #38bdf8;
+        }
+
+        .btn.small {
+            padding: 10px 16px;
+            font-size: 13px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .section {
+            scroll-margin-top: 100px;
+        }
+
+
     </style>
 </head>
 
 <body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">CricketQL</div>
+
+            <nav class="nav">
+                <a href="#how">How it works</a>
+                <a href="#features">Features</a>
+                <a href="#under">Under the hood</a>
+                <a href="/home/" target="_blank">Demo</a>
+                <a href="https://github.com/Kunwarshub/CricketQL.git" target="_blank">GitHub</a>
+            </nav>
+
+            <a href="/home/" target="_blank" class="btn primary small">Try Live</a>
+        </div>
+    </header>
 
 <div class="container">
 
@@ -144,7 +243,7 @@
             </p>
 
             <div class="buttons">
-                <a href="/home/" class="btn primary">Try Live Demo</a>
+                <a href="/home/" class="btn primary" target="_blank">Try Live Demo</a>
                 <a href="https://github.com/Kunwarshub/CricketQL.git" class="btn secondary" target="_blank">
                     View GitHub
                 </a>
@@ -168,7 +267,7 @@
     </section>
 
     <!-- HOW IT WORKS -->
-    <section class="section">
+    <section class="section" id="how">
         <h2>How it works</h2>
 
         <div class="features">
@@ -191,11 +290,21 @@
                 <h3>4. Optional LLM Fallback</h3>
                 <p>If data is missing, an external LLM answers transparently.</p>
             </div>
+
+            <div class="card">
+                <h3>5. Result Validation</h3>
+                <p>Ensures outputs match expected schema and cricket-specific constraints.</p>
+            </div>
+
+            <div class="card">
+                <h3>6. Answer Attribution</h3>
+                <p>Clearly labels whether the response came from the database or fallback logic.</p>
+            </div>
         </div>
     </section>
 
     <!-- FEATURES -->
-    <section class="section">
+    <section class="section" id="features">
         <h2>Key features</h2>
 
         <div class="features">
@@ -218,21 +327,83 @@
                 <h3>Modular Django backend</h3>
                 <p>Clean, scalable architecture.</p>
             </div>
+
+            <div class="card">
+                <h3>Explainable SQL</h3>
+                <p>Generated queries can be inspected for transparency and debugging.</p>
+            </div>
+
+            <div class="card">
+                <h3>Deterministic Outputs</h3>
+                <p>Same question + same data always produces the same answer.</p>
+            </div>
         </div>
     </section>
 
-    <h2>Under the Hood</h2>
-    <ul>
-      <li>Relational PostgreSQL schema with batting, bowling, and fielding tables</li>
-      <li>Natural language → SQL generation with backend-level validation</li>
-      <li>Strict SELECT-only query enforcement (no mutations)</li>
-      <li>Rejection of ambiguous, unsafe, or out-of-domain prompts</li>
-      <li>Optional LLM fallback clearly labeled as non-database output</li>
-    </ul>
+    <section class="section" id="under">
+        <h2>Under the hood ⚙️</h2>
 
-    <footer>
-        Built by Kunwar · Django · PostgreSQL · LLMs
+        <div class="features">
+            <div class="card">
+                <h3>Constrained LLM Pipeline</h3>
+                <p>LLM operates inside a tightly scoped grammar — no free-form SQL.</p>
+            </div>
+
+            <div class="card">
+                <h3>Dual-Layer Query Safety</h3>
+                <p>SQL is validated during generation and again before execution.</p>
+            </div>
+
+            <div class="card">
+                <h3>Real PostgreSQL Engine</h3>
+                <p>Queries run against an actual cricket dataset — no mock data.</p>
+            </div>
+
+            <div class="card">
+                <h3>Schema-Aware Parsing</h3>
+                <p>Tables, joins, and aggregations are checked against live metadata.</p>
+            </div>
+
+            <div class="card">
+                <h3>Transparent Fallback</h3>
+                <p>Non-database answers are explicitly marked and controlled.</p>
+            </div>
+
+            <div class="card">
+                <h3>Django Architecture</h3>
+                <p>Clean separation of parsing, validation, execution, and response layers.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div>
+                <h4>Product</h4>
+                <a href="#how">How it works</a>
+                <a href="#features">Features</a>
+                <a href="/home/">Live demo</a>
+            </div>
+
+            <div>
+                <h4>Developer</h4>
+                <a href="https://github.com/Kunwarshub/CricketQL.git" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com" target="_blank">LinkedIn</a>
+                <a href="mailto:your@email.com">Contact</a>
+            </div>
+
+            <div>
+                <h4>Legal</h4>
+                <span>All rights reserved</span>
+            </div>
+        </div>
+
+        <p class="copyright">
+            © 2026 CricketQL. All rights reserved.
+        </p>
     </footer>
+
 
 
 </div>
