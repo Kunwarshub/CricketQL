@@ -33,3 +33,9 @@ Unlike LLM-only systems, queries are executed against a real database with safet
 Disclaimer
 
 This project uses demo/sample data. API keys and credentials are not included.
+
+
+## Project Preview
+
+![App Screenshot 1](./data/SS1.png)
+![App Screenshot 2](./data/SS2.png)
