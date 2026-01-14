@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&gbjn=ya9s3g=fnda21dk-e-5s0b3e014+12*d64o_2$_0k)il
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['cricketql.onrender.com']
 
 
 # Application definition
