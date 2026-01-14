@@ -6,10 +6,10 @@ from django.shortcuts import render
 from psycopg2.extras import NumericRange
 
 def landing(request):
-    return render(request, "core\\landing.html")
+    return render(request, "core/landing.html")
 
 def home(request):
-    return render(request, "core\\index.html")
+    return render(request, "core/index.html")
 
 def span_to_JSON(columns, row):
     obj = {}
