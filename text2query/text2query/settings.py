@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-&gbjn=ya9s3g=fnda21dk-e-5s0b3e014+12*d64o_2$_0k)il
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['cricketql.onrender.com']
+ALLOWED_HOSTS = ['cricketql.onrender.com', "127.0.0.1"]
 
 
 # Application definition
@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'text2query.wsgi.application'
 
 DATABASES = {
     "default": dj_database_url.parse(
-        os.environ.get("postgresql://cricket_db_p01w_user:OtCuTrCX3KN6CmOZeXZPWXd9Ms8w93DW@dpg-d5kd2gsoud1c73eh37vg-a/cricket_db_p01w"),
+        "postgresql://cricket_db_p01w_user:OtCuTrCX3KN6CmOZeXZPWXd9Ms8w93DW@dpg-d5kd2gsoud1c73eh37vg-a.singapore-postgres.render.com/cricket_db_p01w",
         conn_max_age=600,
         ssl_require=True
     )
