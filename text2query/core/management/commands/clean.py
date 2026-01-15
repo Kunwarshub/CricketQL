@@ -28,11 +28,21 @@ class Command(BaseCommand):
         import numpy as np
         
         # Read CSV and normalize missing values
+        from django.conf import settings
+        import os
+        
+        csv_path = os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "Fielding_cleaned_v2.csv"
+        )
+        
         df = pd.read_csv(
-            "C:\\Users\\kunwa\\OneDrive\\Desktop\\Python\\NLP to SQL\\data\\Fielding_cleaned_v2.csv",
+            csv_path,
             index_col=0,
             na_values=["-", "NaN", "null", ""]
         )
+
         
         # Optional: rename CSV columns to match model
         df.rename(columns={

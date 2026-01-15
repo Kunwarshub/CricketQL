@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -76,14 +78,11 @@ WSGI_APPLICATION = 'text2query.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cricketdb',
-        'USER': 'postgres',
-        'PASSWORD': 'dol',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
+    "default": dj_database_url.parse(
+        os.environ.get("postgresql://cricket_db_p01w_user:OtCuTrCX3KN6CmOZeXZPWXd9Ms8w93DW@dpg-d5kd2gsoud1c73eh37vg-a/cricket_db_p01w"),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
