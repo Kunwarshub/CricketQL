@@ -132,5 +132,5 @@ API keys and credentials are not included.
 
 ## Project Preview
 
-![App Screenshot 1](./data/SS1.png)
-![App Screenshot 2](./data/SS2.png)
+![App Screenshot 1](text2query/data/SS1.png)
+![App Screenshot 2](text2query/data/SS2.png)
