@@ -6,12 +6,12 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Needed for psycopg2
-RUN apt-get update \
+RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
         gcc \
         libpq-dev \
         netcat-openbsd \
-    && apt-get clean \
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
