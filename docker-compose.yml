@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:15
+    container_name: cricket_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cricket
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: cricket_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  web:
+    build: 
+      context: ./text2query
+      dockerfile: Dockerfile
+    container_name: cricket_django
+    command: >
+      sh -c "
+      echo 'Waiting for postgres...';
+      while ! nc -z db 5432; do sleep 1; done;
+      python manage.py migrate &&
+      python manage.py load_data &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+    volumes:
+    - ./text2query:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      DB_NAME: cricket
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+
+volumes:
+  postgres_data:

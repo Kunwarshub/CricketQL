@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from decouple import config
 import os
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +27,7 @@ SECRET_KEY = 'django-insecure-&gbjn=ya9s3g=fnda21dk-e-5s0b3e014+12*d64o_2$_0k)il
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['cricketql.onrender.com', "127.0.0.1"]
+ALLOWED_HOSTS = ['cricketql.onrender.com', "127.0.0.1", 'localhost']
 
 
 # Application definition
@@ -80,11 +79,11 @@ WSGI_APPLICATION = 'text2query.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "cricketdb",
-        "USER": "postgres",
-        "PASSWORD": "dol",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "NAME": config("DB_NAME", "cricket"),
+        "USER": config("DB_USER", "postgres"),
+        "PASSWORD": config("DB_PASSWORD", "postgres"),
+        "HOST": config("DB_HOST", "localhost"),
+        "PORT": config("DB_PORT", "5432"),
     }
 }
 

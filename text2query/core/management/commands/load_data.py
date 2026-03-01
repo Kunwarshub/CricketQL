@@ -2,8 +2,11 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import transaction
 from psycopg2.extras import NumericRange
+from pathlib import Path
+from django.conf import settings
 
-import os
+DATA_DIR = Path(settings.BASE_DIR) / "data"
+
 import re
 import pandas as pd
 import numpy as np
@@ -33,7 +36,7 @@ def parse_md(md_str):
 def load_fielding():
 
     df = pd.read_csv(
-        "C:\\Users\\kunwar_fix\\Desktop\\Python\\NLP to SQL\\data\\Fielding_cleaned_v2.csv",
+        DATA_DIR / "Fielding_cleaned_v2.csv",
         index_col=0,
         na_values=["-", "NaN", "null", ""]
     )
@@ -83,7 +86,7 @@ def load_fielding():
 def load_batting():
 
     df = pd.read_csv(
-        "C:\\Users\\kunwar_fix\\Desktop\\Python\\NLP to SQL\\data\\Batting_cleaned_v2.csv",
+        DATA_DIR / "Batting_cleaned_v2.csv",
         index_col=0,
         na_values=["-", "NaN", "null", ""]
     )
@@ -134,7 +137,7 @@ def load_batting():
 def load_bowling():
 
     df = pd.read_csv(
-        "C:\\Users\\kunwar_fix\\Desktop\Python\\NLP to SQL\\data\\Bowling_cleaned_v2.csv",
+        DATA_DIR / "Bowling_cleaned_v2.csv",
         index_col=0,
         na_values=["-", "NaN", "null", ""]
     )
@@ -187,6 +190,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         with transaction.atomic():
+
+            self.stdout.write("Clearing existing data...")
+            Fielding.objects.all().delete()
+            Batting.objects.all().delete()
+            Bowling.objects.all().delete()
+
             self.stdout.write("Loading Fielding...")
             load_fielding()
 
@@ -196,4 +205,6 @@ class Command(BaseCommand):
             self.stdout.write("Loading Bowling...")
             load_bowling()
 
-        self.stdout.write(self.style.SUCCESS("All cricket data loaded successfully"))
+        self.stdout.write(
+            self.style.SUCCESS("All cricket data loaded successfully")
+        )
