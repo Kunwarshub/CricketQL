@@ -9,23 +9,113 @@ def generate_SQL(question: str):
         messages=[
             {
                 'role':'system',
-                'content':'''You are an assistant that translates natural language queries into SQL queries. 
-                            The database has 3 tables:  
-                            core_batting(player_name, span, Mat, Inns, Runs, HS, Ave, BF, SR, Cent, half_Cent, duck, fours, sixes)
-                            core_bowling(player_name, span, Mat, Inns, Overs, Runs, Wkts, Ave, Econ, SR, fours, fives)
-                            core_fielding(player_name, span, Mat, Inns, Dis, Ct, St, Ct_Wk, Ct_Fi, MD_total, MD_Ct, MD_St, DPI)  
-                            player_name is a string which is stored in the format ((initials last name) (country in uppercase)) (eg. V Kohli (INDIA), RG Sharma (INDIA), Shoaib Malik (ICC/PAK)), span is an integerrangefield (years), Mat and Inns are integers, and the rest are statistics.
-                            Only generate SQL queries if the question is related to cricket statistics(we are using postgres, so use ILIKE where its valid).
-                            If the question is not related to cricket, just say "please ask cricket related questions".
-                            You only have to return the SQL query, no raw text, nothing, only the query required.
-                            Always reference the table and column names exactly as given above.
-                            Also only give the queries for those questions which can be accurately answered by the database itself, if the database cannot answer a question,
-                            say "not in the data" without returning any sql.
-                            DO NOT return any Insert, delete, or update query at any cost.
-                            If the user types full name use initials+last name for search, else stick to last name, dont forget to use '%' before and after the initials and before the last name as well, eg: %M% Hafeez%, %MS% Dhoni, etc.
-                            Give the queries for all the 3 fields, ie, batting, bowling and fielding unless specified otherwise, then only give which is required.
-                            Always return the player_name with any other info as well and quote column names.
-                            The data is not yearwise, its the total stats of each player in their play span so whenever yearwise questions are asked, just say "not in the data".
+                'content':'''You are a system that converts cricket statistics questions into PostgreSQL SQL queries.
+
+                            DATABASE SCHEMA:
+
+                            Tables:
+
+                            core_batting(
+                                player_name,
+                                span,
+                                Mat,
+                                Inns,
+                                Runs,
+                                HS,
+                                Ave,
+                                BF,
+                                SR,
+                                Cent,
+                                half_Cent,
+                                duck,
+                                fours,
+                                sixes
+                            )
+
+                            core_bowling(
+                                player_name,
+                                span,
+                                Mat,
+                                Inns,
+                                Overs,
+                                Runs,
+                                Wkts,
+                                Ave,
+                                Econ,
+                                SR,
+                                fours,
+                                fives
+                            )
+
+                            core_fielding(
+                                player_name,
+                                span,
+                                Mat,
+                                Inns,
+                                Dis,
+                                Ct,
+                                St,
+                                Ct_Wk,
+                                Ct_Fi,
+                                MD_total,
+                                MD_Ct,
+                                MD_St,
+                                DPI
+                            )
+
+                            IMPORTANT RULES:
+
+                            1. player_name values are stored as:
+                               "<INITIALS> <LASTNAME> (COUNTRY)"
+                               Example: "V Kohli (INDIA)", "MS Dhoni (INDIA)".
+
+                            2. NEVER hardcode player names in SQL.
+                               Always use a parameter placeholder:
+
+                                   player_name ILIKE %s
+
+                               The application will provide the value.
+
+                            3. Only generate SELECT queries.
+                               NEVER generate INSERT, UPDATE, DELETE, ALTER, or DROP queries.
+
+                            4. Use column names EXACTLY as defined (CASE SENSITIVE).
+
+                            5. Use PostgreSQL syntax and ILIKE for text matching when needed.
+
+                            6. Statistics represent total career data only.
+                               If a question asks for year-wise or time-filtered data, respond exactly:
+
+                                   not in the data
+
+                            7. If a question is unrelated to cricket statistics, respond exactly:
+
+                                   please ask cricket related questions
+
+                            8. If the database cannot answer the question using the available schema, respond exactly:
+
+                                   not in the data
+
+                            9. PostgreSQL is case-sensitive for identifiers.
+
+                                ALL table names and column names MUST ALWAYS be wrapped in double quotes.
+                                
+                                Examples:
+                                
+                                Correct:
+                                SELECT "Runs" FROM "core_batting"
+                                WHERE "player_name" ILIKE %s;
+                                
+                                Incorrect:
+                                SELECT Runs FROM core_batting
+                                SELECT runs FROM core_batting
+                                
+                                Always preserve the exact column casing by using double quotes.
+
+                            OUTPUT FORMAT:
+
+                            Return ONLY the SQL query or one of the allowed fallback responses.
+                            Do NOT include explanations or extra text.
                             '''
             },   
             {
@@ -40,9 +130,9 @@ def generate_SQL(question: str):
     
     return query    
     
-def execute_SQL(query: str):
+def execute_SQL(query: str, player_name):
     with connection.cursor() as cursor:
-        cursor.execute(query)
+        cursor.execute(query, [player_name])
         rows = cursor.fetchall()
         columns = [col[0] for col in cursor.description]
         return rows, columns

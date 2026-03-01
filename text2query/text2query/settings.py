@@ -78,11 +78,14 @@ WSGI_APPLICATION = 'text2query.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        "postgresql://cricket_db_p01w_user:OtCuTrCX3KN6CmOZeXZPWXd9Ms8w93DW@dpg-d5kd2gsoud1c73eh37vg-a.singapore-postgres.render.com/cricket_db_p01w",
-        conn_max_age=600,
-        ssl_require=True
-    )
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "cricketdb",
+        "USER": "postgres",
+        "PASSWORD": "dol",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+    }
 }
 
 
