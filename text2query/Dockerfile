@@ -5,7 +5,6 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Needed for psycopg2
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
         gcc \
@@ -21,4 +20,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py load_data && python manage.py runserver 0.0.0.0:8000"]
+CMD ["gunicorn", "text2query.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -59,15 +59,16 @@ METRIC_MAP = {
     "field catches": ("core_fielding", "Ct_Fi"),
     "dismissals per innings": ("core_fielding", "DPI"),
     "dpi": ("core_fielding", "DPI"),
+    "span": ("core_batting", "span")
 }
 
 TABLE_HINTS = {
     "core_batting": ["batting", "batsman", "batter"],
-    "core_bowling": ["bowling", "bowler"],
-    "core_fielding": ["fielding", "keeper", "wicketkeeping"],
+    "core_bowling": ["bowling", "bowler", "bowl"],
+    "core_fielding": ["fielding", "keeper", "wicketkeeping", "fielder"],
 }
 
-AMBIGUOUS_METRICS = {"Runs", "Ave", "SR", "span"}
+AMBIGUOUS_METRICS = {"Runs", "Ave", "SR", "Mat", "Inns", "span"}
 
 ALIASES = sorted(METRIC_MAP.keys(), key=len, reverse=True)
 

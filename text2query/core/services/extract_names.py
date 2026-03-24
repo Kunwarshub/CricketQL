@@ -1,33 +1,52 @@
-NON_NAME_WORDS = {
-    "by", "of", "the", "is", "did", "does",
-    "how", "many", "what", "tell", "me",
-    "show", "give", "taken", "score",
-    "stats", "player", "players", "were", "the", "total", "scored"
+from difflib import get_close_matches
+
+PLAYER_NAME_MAP = {}  # empty at import time, populated at startup
+
+FUZZY_STOPWORDS = {
+    "names", "name", "players", "player", "top", "best", 
+    "most", "runs", "wickets", "average", "list", "give",
+    "show", "tell", "who", "what", "how", "many"
 }
 
-def extract_name_tokens(remaining):
-    words = remaining.lower().split()
+def load_player_names():
+    from django.db import connection  # import here, not at top level
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT DISTINCT player_name FROM core_batting
+            UNION
+            SELECT DISTINCT player_name FROM core_bowling
+            UNION
+            SELECT DISTINCT player_name FROM core_fielding
+        """)
+        rows = cursor.fetchall()
+    global PLAYER_NAME_MAP
+    PLAYER_NAME_MAP = {row[0].lower(): row[0] for row in rows if row[0]}
 
-    tokens = [
-        w for w in words
-        if w not in NON_NAME_WORDS and w.isalpha()
-    ]
+def extract_player_name(query: str) -> str | None:
+    query_lower = query.lower()
+    query_words = [w for w in query_lower.split() if len(w) >= 4]
+    
+    print(f"query_words: {query_words}")  # what words are being checked
 
-    return tokens
+    best_score = 0
+    best_match = None
 
-def build_player_pattern(remaining):
+    for normalized_name, original_name in PLAYER_NAME_MAP.items():
+        name_only = normalized_name.split("(")[0].strip()
+        name_parts = [p for p in name_only.split() if len(p) >= 4]
 
-    tokens = extract_name_tokens(remaining)
+        if not name_parts:
+            continue
 
-    if not tokens:
-        return None
+        score = 0
+        for q_word in query_words:
+            matches = get_close_matches(q_word, name_parts, n=1, cutoff=0.9)
+            if matches:
+                score += 1
+                print(f"MATCH: '{q_word}' matched '{matches}' in '{normalized_name}' score={score}")  # what's matching
 
-    # single token → surname search
-    if len(tokens) == 1:
-        return f"%{tokens[0].capitalize()}%"
+        if score > best_score:
+            best_score = score
+            best_match = original_name
 
-    # multi token → initials + surname
-    lastname = tokens[-1].capitalize()
-    initials = "".join(t[0].upper() for t in tokens[:-1])
-
-    return f"%{initials}% {lastname}%"
+    return best_match if best_score >= 1 else None

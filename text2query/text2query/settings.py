@@ -79,9 +79,9 @@ WSGI_APPLICATION = 'text2query.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", "cricket"),
+        "NAME": config("DB_NAME", "cricketdb"),
         "USER": config("DB_USER", "postgres"),
-        "PASSWORD": config("DB_PASSWORD", "postgres"),
+        "PASSWORD": config("DB_PASSWORD", "dol"),
         "HOST": config("DB_HOST", "localhost"),
         "PORT": config("DB_PORT", "5432"),
     }

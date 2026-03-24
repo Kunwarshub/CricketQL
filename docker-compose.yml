@@ -27,11 +27,11 @@ services:
       sh -c "
       echo 'Waiting for postgres...';
       while ! nc -z db 5432; do sleep 1; done;
+      echo 'Postgres ready.';
       python manage.py migrate &&
       python manage.py load_data &&
-      python manage.py runserver 0.0.0.0:8000
+      gunicorn text2query.wsgi:application --bind 0.0.0.0:8000
       "
-    
     ports:
       - "8000:8000"
     depends_on:
@@ -44,6 +44,8 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       REDIS_HOST: redis
+    env_file:
+      - text2query/.env
 
 volumes:
   postgres_data:

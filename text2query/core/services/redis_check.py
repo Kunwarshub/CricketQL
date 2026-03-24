@@ -7,7 +7,7 @@ try:
     r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
     r.ping()
     redis_available = True
-except redis.ConnectionError:
+except Exception as e:
     r = None
     redis_available = False
 
