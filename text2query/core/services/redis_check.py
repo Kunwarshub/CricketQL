@@ -1,10 +1,10 @@
 import redis
 import os
 
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 try:
-    r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
+    r = redis.from_url(REDIS_URL, decode_responses=True)
     r.ping()
     redis_available = True
 except Exception as e:
