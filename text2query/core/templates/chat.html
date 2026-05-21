@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <title>CricketQL</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #e8e8e8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 720px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+    }
+
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 0.5px solid #2a2a2a;
+      margin-bottom: 16px;
+    }
+
+    #header i { font-size: 20px; color: #888; }
+
+    #header h1 {
+      font-size: 16px;
+      font-weight: 500;
+      color: #e8e8e8;
+    }
+
+    #status {
+      margin-left: auto;
+      font-size: 12px;
+      background: #1a2e1a;
+      color: #4caf50;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a2a transparent;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .msg .label {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cached-badge {
+      font-size: 10px;
+      background: #1a2e1a;
+      color: #4caf50;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: #1a1a1a;
+      border: 0.5px solid #2a2a2a;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      background: #161616;
+      border: 0.5px solid #2a2a2a;
+    }
+
+    .msg.loading span {
+      color: #555;
+      font-style: italic;
+    }
+
+    #input-area {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 0.5px solid #2a2a2a;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 0.5px solid #2a2a2a;
+      background: #161616;
+      color: #e8e8e8;
+      resize: none;
+      height: 44px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    #input:focus { border-color: #444; }
+    #input::placeholder { color: #555; }
+
+    #send {
+      padding: 0 16px;
+      height: 44px;
+      border-radius: 10px;
+      border: 0.5px solid #2a2a2a;
+      background: #161616;
+      color: #e8e8e8;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    #send:hover { background: #1f1f1f; }
+    #send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #error {
+      font-size: 12px;
+      color: #e05a5a;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .msg span ol, .msg span ul {
+      padding-left: 1.5rem;
+      margin: 6px 0;
+    }
+    .msg span li {
+      margin-bottom: 4px;
+      padding-left: 4px;
+    }
+    .msg span p { margin-bottom: 8px; }
+    .msg span p:last-child { margin-bottom: 0; }
+    .msg span strong { font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <i class="ti ti-cricket" aria-hidden="true"></i>
+      <h1>CricketQL</h1>
+      <span id="status">live</span>
+    </div>
+
+    <div id="messages">
+      <div class="msg bot">
+        <div class="label">CricketQL</div>
+        <span>Ask me anything about cricket — player stats, match records, career comparisons.</span>
+      </div>
+    </div>
+
+    <div id="error"></div>
+
+    <div id="input-area">
+      <textarea id="input" placeholder="e.g. who has the most career runs?"></textarea>
+      <button id="send" onclick="sendMessage()">
+        <i class="ti ti-send" aria-hidden="true"></i> Send
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const errorEl = document.getElementById('error');
+
+    const API_URL = '/home';
+
+    fetch('/clear-session');
+
+    function addMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = `msg ${type}`;
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = type === 'user' ? 'You' : 'CricketQL';
+      div.appendChild(label);
+      const span = document.createElement('span');
+      if (text) span.innerHTML = marked.parse(text);
+      div.appendChild(span);
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
+    }
+
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    async function sendMessage() {
+      const msg = inputEl.value.trim();
+      if (!msg) return;
+
+      inputEl.value = '';
+      sendBtn.disabled = true;
+      errorEl.style.display = 'none';
+
+      addMessage(msg, 'user');
+      const botDiv = addMessage('', 'bot');
+      const span = botDiv.querySelector('span');
+      const labelEl = botDiv.querySelector('.label');
+      let fullText = '';
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg })
+        });
+
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+        const contentType = res.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          const badge = document.createElement('span');
+          badge.className = 'cached-badge';
+          badge.textContent = 'cached';
+          labelEl.appendChild(badge);
+          span.innerHTML = marked.parse(data.response);
+        } else {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') break;
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.status) {
+                      span.style.color = '#555';
+                      span.style.fontStyle = 'italic';
+                      span.textContent = parsed.status;
+                  } else if (parsed.token) {
+                      span.style.color = '';
+                      span.style.fontStyle = '';
+                      fullText += parsed.token;
+                      span.innerHTML = marked.parse(fullText);
+                  }
+                } catch {}
+              }
+            }
+          }
+        }
+
+      } catch (err) {
+        botDiv.remove();
+        errorEl.textContent = 'Something went wrong. Check the Django server.';
+        errorEl.style.display = 'block';
+      } finally {
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+    }
+  </script>
+</body>
+</html>

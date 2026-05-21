@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import home, api_query, landing
+from .views import get_result, chat, clear_session
 
 urlpatterns = [
-    path("", landing, name="landing"),
-    path("api/query/", api_query, name="api_query"),
-    path("home/", home, name="home")
+    path("", chat, name="chat"),
+    path("home", get_result, name="home"),
+    path("clear-session", clear_session, name="clear_session")
 ]

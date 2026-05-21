@@ -1,38 +1,45 @@
 import redis
 import os
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+_redis = None
 
-try:
-    r = redis.from_url(REDIS_URL, decode_responses=True)
-    r.ping()
-    redis_available = True
-except Exception as e:
-    r = None
-    redis_available = False
+def get_redis():
+    global _redis
+
+    if _redis == None:
+        try:
+            REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+            _redis = redis.from_url(REDIS_URL, decode_responses = True)
+            _redis.ping()
+        except Exception:
+            _redis = None
+
+    return _redis
 
 
 def get_cache(key):
 
-    if not redis_available:
+    r = get_redis()
+    if r is None:
         return None
 
     try:
-        value = r.get(key)
-        if value is not None:
-            return value
+        return r.get(key)
     except redis.ConnectionError:
         return None
 
-    return None
 
-
-def set_cache(key, sql):
-
-    if not redis_available:
+def set_cache(key, value, ttl=3600):
+    r = get_redis()
+    if r is None:
+        print("Redis not available")
         return
-
     try:
-        r.set(key, sql, ex=3600)  # TTL
-    except redis.ConnectionError:
-        pass
+        if ttl:
+            result = r.set(key, value, ex=ttl)
+            print(f"set_cache result: {result}, key: {key}")
+        else:
+            result = r.set(key, value)
+            print(f"set_cache result: {result}, key: {key}")
+    except Exception as e:
+        print(f"set_cache error: {e}")
