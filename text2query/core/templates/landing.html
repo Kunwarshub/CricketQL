@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CricketQL — Ask Cricket, Get Answers</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #222222;
+    --green: #4ade80;
+    --green-dim: #166534;
+    --green-glow: rgba(74, 222, 128, 0.08);
+    --text: #e8e8e8;
+    --text-dim: #666666;
+    --text-mid: #999999;
+    --accent: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  nav.scrolled {
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(12px);
+    border-color: var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo .rocket { font-size: 18px; }
+
+  .live-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--green);
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .live-badge::before {
+    content: '● ';
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px !important;
+    color: var(--green) !important;
+    border: 1px solid rgba(74, 222, 128, 0.3) !important;
+    padding: 7px 16px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    background: rgba(74, 222, 128, 0.08) !important;
+    color: var(--green) !important;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 48px 80px;
+    position: relative;
+    text-align: center;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(74, 222, 128, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--green);
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+    color: var(--text-mid);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: #0a0a0a;
+    padding: 13px 28px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: opacity 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .btn-secondary {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+    padding: 13px 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .btn-secondary:hover { color: var(--text); border-color: #333; }
+
+  /* DEMO PREVIEW */
+  .demo-preview {
+    margin-top: 80px;
+    width: 100%;
+    max-width: 720px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards;
+  }
+
+  .demo-window {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(74, 222, 128, 0.04), 0 40px 80px rgba(0,0,0,0.4);
+  }
+
+  .demo-titlebar {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #27c93f; }
+
+  .demo-url {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 4px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .demo-body { padding: 24px; }
+
+  .demo-msg {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-mid);
+    font-family: 'DM Mono', monospace;
+    text-align: left;
+  }
+
+  .demo-msg .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .demo-msg.user { border-color: rgba(74, 222, 128, 0.15); }
+  .demo-msg.user .label { color: var(--green); }
+  .demo-msg.user .text { color: var(--text); }
+
+  .demo-msg .text { color: var(--text-mid); line-height: 1.6; }
+
+  /* STATS */
+  .stats-section {
+    padding: 80px 48px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stats-grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 40px 32px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Instrument Serif', serif;
+    font-size: 48px;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* HOW IT WORKS */
+  .section {
+    padding: 100px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-size: 15px;
+    color: var(--text-mid);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-bottom: 64px;
+  }
+
+  /* ARCH FLOW */
+  .arch-flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .arch-step {
+    background: var(--surface);
+    padding: 32px 24px;
+    position: relative;
+  }
+
+  .arch-step:hover { background: var(--surface2); }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .step-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .step-tag {
+    margin-top: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.15);
+    padding: 3px 8px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* STACK */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .stack-card:hover {
+    border-color: rgba(74, 222, 128, 0.2);
+    background: var(--surface2);
+  }
+
+  .stack-card-icon { font-size: 20px; margin-bottom: 12px; }
+
+  .stack-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .stack-card-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* STORY */
+  .story-section {
+    padding: 100px 48px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .story-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .story-inner .section-tag { text-align: center; }
+  .story-inner .section-title { text-align: center; }
+
+  .story-text {
+    font-size: 16px;
+    color: var(--text-mid);
+    line-height: 1.8;
+    margin-top: 40px;
+  }
+
+  .story-text p { margin-bottom: 20px; }
+
+  .story-text strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* CTA */
+  .cta-section {
+    padding: 120px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(74, 222, 128, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section .section-title { margin-bottom: 16px; }
+
+  .cta-section .section-sub {
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .footer-left a {
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .footer-links a:hover { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .arch-flow { grid-template-columns: 1fr 1fr; }
+    .stack-grid { grid-template-columns: 1fr 1fr; }
+    .section { padding: 60px 24px; }
+    .story-section { padding: 60px 24px; }
+    .cta-section { padding: 80px 24px; }
+    footer { padding: 24px; flex-direction: column; gap: 16px; text-align: center; }
+    .hero-actions { flex-direction: column; width: 100%; }
+    .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <span class="rocket">🚀</span>
+    CricketQL
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#stack">Stack</a>
+    <a href="#story">Story</a>
+    <a href="https://github.com/Kunwarshub" target="_blank">GitHub</a>
+    <a href="/chat" class="nav-cta">Try it →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-tag">Powered by LangGraph + LangChain</div>
+  <h1 class="hero-title">Ask cricket.<br><em>Get answers.</em></h1>
+  <p class="hero-subtitle">An AI agent that turns plain English questions into live cricket statistics. No SQL. No filters. Just ask.</p>
+  <div class="hero-actions">
+    <a href="/chat" class="btn-primary">
+      <span>Try CricketQL</span>
+      <span>→</span>
+    </a>
+    <a href="https://github.com/Kunwarshub/CricketQL" target="_blank" class="btn-secondary">
+      <span>⌥</span>
+      <span>View on GitHub</span>
+    </a>
+  </div>
+
+  <div class="demo-preview">
+    <div class="demo-window">
+      <div class="demo-titlebar">
+        <div class="dots">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+        </div>
+        <div class="demo-url">cricketql.onrender.com</div>
+        <div class="live-badge">live</div>
+      </div>
+      <div class="demo-body">
+        <div class="demo-msg user">
+          <div class="label">You</div>
+          <div class="text">Who has the most test centuries in cricket history?</div>
+        </div>
+        <div class="demo-msg">
+          <div class="label">CricketQL</div>
+          <div class="text">Sachin Tendulkar leads with 51 Test centuries, followed by Jacques Kallis with 45 and Ricky Ponting with 41. Tendulkar's record spans 24 years of international cricket from 1989 to 2013.</div>
+        </div>
+        <div class="demo-msg user">
+          <div class="label">You</div>
+          <div class="text">What about in ODIs?</div>
+        </div>
+        <div class="demo-msg">
+          <div class="label">CricketQL</div>
+          <div class="text">In ODIs, Sachin Tendulkar again leads with 49 centuries. The agent remembered your context — no need to repeat yourself.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-number">3×</div>
+      <div class="stat-label">Built from scratch</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">v3</div>
+      <div class="stat-label">LangGraph Agent</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">AWS</div>
+      <div class="stat-label">Production deployed</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="section-tag">Architecture</div>
+  <h2 class="section-title">How CricketQL works</h2>
+  <p class="section-sub">A LangGraph agent that introspects your database schema and autonomously generates, validates, and executes SQL queries.</p>
+
+  <div class="arch-flow">
+    <div class="arch-step">
+      <div class="step-num">01</div>
+      <span class="step-icon">💬</span>
+      <div class="step-title">Natural Language Input</div>
+      <div class="step-desc">You type any cricket question in plain English. No syntax, no filters, no dropdown menus.</div>
+      <span class="step-tag">User Query</span>
+    </div>
+    <div class="arch-step">
+      <div class="step-num">02</div>
+      <span class="step-icon">🧠</span>
+      <div class="step-title">LangGraph Agent</div>
+      <div class="step-desc">The agent receives your query with full conversation memory, maintaining context across follow-up questions.</div>
+      <span class="step-tag">MemorySaver</span>
+    </div>
+    <div class="arch-step">
+      <div class="step-num">03</div>
+      <span class="step-icon">🔧</span>
+      <div class="step-title">SQLDatabaseToolkit</div>
+      <div class="step-desc">Auto-introspects schema across batting, bowling, and fielding tables. Generates and executes validated SQL autonomously.</div>
+      <span class="step-tag">Tool Calling</span>
+    </div>
+    <div class="arch-step">
+      <div class="step-num">04</div>
+      <span class="step-icon">📊</span>
+      <div class="step-title">Live Results</div>
+      <div class="step-desc">Real data from a live PostgreSQL database. NULL filtering and deterministic ordering enforced at the prompt level.</div>
+      <span class="step-tag">PostgreSQL</span>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="section" id="stack" style="padding-top: 0;">
+  <div class="section-tag">Technology</div>
+  <h2 class="section-title">Built with the right tools</h2>
+  <div class="stack-grid">
+    <div class="stack-card">
+      <div class="stack-card-icon">🦜</div>
+      <div class="stack-card-title">LangGraph + LangChain</div>
+      <div class="stack-card-desc">Agentic AI framework powering autonomous tool use, memory, and multi-turn conversation handling.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-card-icon">🗄️</div>
+      <div class="stack-card-title">PostgreSQL</div>
+      <div class="stack-card-desc">Live relational database with batting, bowling, and fielding tables spanning decades of cricket data.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-card-icon">🐍</div>
+      <div class="stack-card-title">Django + Python</div>
+      <div class="stack-card-desc">Production-grade backend serving the agent API and chat interface with clean session management.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-card-icon">☁️</div>
+      <div class="stack-card-title">AWS EC2</div>
+      <div class="stack-card-desc">Deployed on AWS EC2 with Docker Compose for reproducible, production-ready infrastructure.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-card-icon">⚡</div>
+      <div class="stack-card-title">Groq LLM</div>
+      <div class="stack-card-desc">Ultra-fast inference via Groq API, keeping response times low without sacrificing quality.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-card-icon">🐳</div>
+      <div class="stack-card-title">Docker</div>
+      <div class="stack-card-desc">Fully containerized deployment ensuring consistent environments from local development to production.</div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="story-section" id="story">
+  <div class="story-inner">
+    <div class="section-tag">Origin</div>
+    <h2 class="section-title">Built three times.<br>Worth every iteration.</h2>
+    <div class="story-text">
+      <p>The first version was embarrassing. A giant system prompt with the entire database schema dumped into it — no real AI integration, just hoping the LLM would figure it out. It hallucinated queries, returned wrong stats, and I had no idea why.</p>
+      <p>So I rebuilt it. Deterministic feature extraction for player names and metrics. Redis caching that cut LLM calls by 70%. A proper hybrid architecture. It actually worked.</p>
+      <p>Then I wanted to learn LangGraph for real — not just read the docs, but <strong>build something real</strong> with it. So I rebuilt it a third time. Ripped out the entire architecture and replaced it with a LangGraph agent using SQLDatabaseToolkit.</p>
+      <p>What surprised me most was that through all three versions, all the debugging, all the hours — <strong>I never once wanted to give up.</strong> That's probably the closest thing to knowing you're in the right field.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="section-tag">Ready?</div>
+  <h2 class="section-title">Ask your first question.</h2>
+  <p class="section-sub">No signup. No setup. Just cricket questions answered instantly.</p>
+  <div class="cta-actions">
+    <a href="/chat" class="btn-primary">Open CricketQL →</a>
+    <a href="https://github.com/Kunwarshub/CricketQL" target="_blank" class="btn-secondary">⌥ View Source</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-left">
+    Built by <a href="https://github.com/Kunwarshub" target="_blank">Kunwar Abhey Pratap Malik</a>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/Kunwarshub/CricketQL" target="_blank">GitHub</a>
+    <a href="/chat">Demo</a>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  });
+</script>
+
+</body>
+</html>

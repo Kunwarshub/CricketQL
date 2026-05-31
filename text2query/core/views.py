@@ -8,6 +8,9 @@ from .services.redis_check import set_cache, get_cache, get_redis
 
 logger = logging.getLogger(__name__)
 
+def landing(request):
+    return render(request, 'landing.html')
+
 def chat(request):
     return render(request, 'chat.html')
 
